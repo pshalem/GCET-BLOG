@@ -1,5 +1,4 @@
-// components/Layout.tsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sidebar } from './Sidebar';
@@ -7,7 +6,6 @@ import { Header } from './Header';
 import { useAppStore } from '@/store';
 import { mockPosts, mockNotifications, mockPendingPosts } from '@/utils/mockData';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 
 export function Layout() {
   const { theme, currentUser, isAuthenticated, setPosts, setNotifications, setPendingPosts } = useAppStore();
@@ -49,10 +47,7 @@ export function Layout() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={cn(
-              "flex-1 overflow-auto bg-background p-4 sm:p-6",
-              isMobile && "pt-4"
-            )}
+            className="flex-1 overflow-auto bg-background p-4 sm:p-6" // Added responsive padding
           >
             <div className="max-w-7xl mx-auto">
               <Outlet />
