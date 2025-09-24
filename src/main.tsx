@@ -1,15 +1,5 @@
-// components/layout/Layout.tsx
-import { Outlet } from 'react-router-dom';
-import { Header } from './Header';
-// Remove the old Sidebar import
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
 
-export function Layout() {
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-    </div>
-  );
-}
+createRoot(document.getElementById("root")!).render(<App />);
