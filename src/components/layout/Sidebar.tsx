@@ -1,6 +1,6 @@
-import { useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Home, Plus, Bell, Trophy, User, Settings, BookOpen, 
   MessageSquare, Calendar, Shield, LogOut, Menu, X,
@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store';
 import { cn } from '@/lib/utils';
+import { useMobileSidebar } from '@/hooks/use-mobile'; // Import the new hook
 
 const getNavigationItems = (userRole: string) => {
   const baseItems = [
@@ -31,140 +32,192 @@ const getNavigationItems = (userRole: string) => {
   );
 };
 
-interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar() {
   const location = useLocation();
-  const { currentUser, unreadNotifications } = useAppStore();
-  const sidebarRef = useRef<HTMLDivElement>(null);
-
+  const { sidebarCollapsed, toggleSidebar, currentUser, unreadNotifications } = useAppStore();
+  const { isOpen, isMobile, open, close } = useMobileSidebar();
+  
   const navigationItems = getNavigationItems(currentUser?.role || 'student');
 
-  // Close sidebar when clicking outside
+  // Sync with global sidebar state for desktop
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        onClose();
+    if (!isMobile) {
+      // On desktop, use the global sidebar state
+      if (sidebarCollapsed && isOpen) {
+        close();
+      } else if (!sidebarCollapsed && !isOpen) {
+        open();
       }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
     }
+  }, [sidebarCollapsed, isMobile, isOpen, open, close]);
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
+  const handleToggle = () => {
+    if (isMobile) {
+      // On mobile, toggle the mobile sidebar
+      if (isOpen) {
+        close();
+      } else {
+        open();
+      }
+    } else {
+      // On desktop, use the global toggle
+      toggleSidebar();
+    }
+  };
+
+  const handleNavClick = () => {
+    // Close sidebar on mobile when a nav item is clicked
+    if (isMobile) {
+      close();
+    }
+  };
+
+  const sidebarVariants = {
+    open: { 
+      x: 0,
+      width: isMobile ? '280px' : '280px',
+      opacity: 1 
+    },
+    closed: { 
+      x: isMobile ? '-100%' : 0,
+      width: isMobile ? '0px' : '80px',
+      opacity: 1 
+    }
+  };
+
+  const contentVariants = {
+    open: { opacity: 1, display: 'block' },
+    closed: { opacity: 0, display: 'none' }
+  };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
-            onClick={onClose}
-          />
-          
-          {/* Sidebar */}
-          <motion.aside
-            ref={sidebarRef}
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="fixed left-0 top-0 z-50 h-screen w-80 bg-card border-r border-border flex flex-col shadow-lg"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                  <GraduationCap className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-foreground">GCET BLOG</h2>
-                  <p className="text-xs text-muted-foreground">The Digital Voice of GCET</p>
-                </div>
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="hover:bg-secondary"
-                aria-label="Close sidebar"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-2">
-              {navigationItems.map((item) => {
-                const isActive = location.pathname === item.href;
-                const Icon = item.icon;
-                
-                return (
-                  <NavLink
-                    key={item.href}
-                    to={item.href}
-                    onClick={onClose}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all',
-                        'hover:bg-secondary/80 group relative',
-                        isActive
-                          ? 'bg-primary text-primary-foreground shadow-md'
-                          : 'text-muted-foreground hover:text-foreground'
-                      )
-                    }
-                  >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
-                    <span className="font-medium">
-                      {item.title}
-                    </span>
-                    
-                    {/* Notification badge */}
-                    {item.href === '/notifications' && unreadNotifications > 0 && (
-                      <span className="ml-auto bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
-                        {unreadNotifications}
-                      </span>
-                    )}
-                  </NavLink>
-                );
-              })}
-            </nav>
-
-            {/* User Profile */}
-            {currentUser && (
-              <div className="p-4 border-t border-border">
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {currentUser.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {currentUser.department}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </motion.aside>
-        </>
+    <>
+      {/* Mobile Overlay */}
+      {isMobile && isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+          onClick={close}
+        />
       )}
-    </AnimatePresence>
+
+      {/* Sidebar */}
+      <motion.aside
+        variants={sidebarVariants}
+        animate={isOpen ? 'open' : 'closed'}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className={cn(
+          'fixed left-0 top-0 z-50 h-screen bg-card border-r border-border',
+          'flex flex-col shadow-lg',
+          !isMobile && 'lg:relative lg:z-auto',
+          isMobile ? 'w-[280px]' : 'lg:w-auto'
+        )}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <motion.div
+            variants={contentVariants}
+            animate={isOpen ? 'open' : 'closed'}
+            className="flex items-center space-x-3"
+          >
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+              <GraduationCap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">GCET BLOG</h2>
+              <p className="text-xs text-muted-foreground">The Digital Voice of GCET</p>
+            </div>
+          </motion.div>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleToggle}
+            className="hover:bg-secondary"
+          >
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2">
+          {navigationItems.map((item) => {
+            const isActive = location.pathname === item.href;
+            const Icon = item.icon;
+            
+            return (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                onClick={handleNavClick}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all',
+                    'hover:bg-secondary/80 group relative',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )
+                }
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <motion.span
+                  variants={contentVariants}
+                  animate={isOpen ? 'open' : 'closed'}
+                  className="font-medium"
+                >
+                  {item.title}
+                </motion.span>
+                
+                {/* Notification badge */}
+                {item.href === '/notifications' && unreadNotifications > 0 && (
+                  <motion.span
+                    variants={contentVariants}
+                    animate={isOpen ? 'open' : 'closed'}
+                    className="ml-auto bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center"
+                  >
+                    {unreadNotifications}
+                  </motion.span>
+                )}
+
+                {/* Tooltip for collapsed state */}
+                {!isOpen && !isMobile && (
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                    {item.title}
+                  </div>
+                )}
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        {/* User Profile */}
+        {currentUser && (
+          <div className="p-4 border-t border-border">
+            <div className="flex items-center space-x-3">
+              <img
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                className="w-8 h-8 rounded-full"
+              />
+              <motion.div
+                variants={contentVariants}
+                animate={isOpen ? 'open' : 'closed'}
+                className="flex-1 min-w-0"
+              >
+                <p className="text-sm font-medium text-foreground truncate">
+                  {currentUser.name}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {currentUser.department}
+                </p>
+              </motion.div>
+            </div>
+          </div>
+        )}
+      </motion.aside>
+    </>
   );
 }
