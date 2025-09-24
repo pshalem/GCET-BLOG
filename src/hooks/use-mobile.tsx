@@ -17,3 +17,26 @@ export function useIsMobile() {
 
   return !!isMobile;
 }
+
+export function useMobileSidebar() {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const isMobile = useIsMobile();
+
+  const open = () => setIsOpen(true);
+  const close = () => setIsOpen(false);
+  const toggle = () => setIsOpen(!isOpen);
+
+  React.useEffect(() => {
+    if (!isMobile) {
+      setIsOpen(false); 
+    }
+  }, [isMobile]);
+
+  return {
+    isOpen: isMobile ? isOpen : true,
+    isMobile,
+    open,
+    close,
+    toggle
+  };
+}
