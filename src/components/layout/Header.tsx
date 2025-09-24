@@ -1,3 +1,4 @@
+// components/Header.tsx
 import { useState } from 'react';
 import { Search, Bell, Moon, Sun, User, LogOut, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -14,15 +15,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store';
 import { motion } from 'framer-motion';
-import { useMobileSidebar } from '@/hooks/use-mobile'; // Import the hook
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
-interface HeaderProps {
-  onMenuClick?: () => void;
-}
-
-export function Header({ onMenuClick }: HeaderProps) {
-  const { theme, toggleTheme, currentUser, unreadNotifications, logout } = useAppStore();
-  const { isMobile, open } = useMobileSidebar();
+export function Header() {
+  const { theme, toggleTheme, currentUser, unreadNotifications, logout, toggleSidebar } = useAppStore();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
@@ -37,11 +35,11 @@ export function Header({ onMenuClick }: HeaderProps) {
     navigate('/login');
   };
 
-  const handleMenuClick = () => {
+  const handleMobileMenuClick = () => {
     if (isMobile) {
-      open(); // Open sidebar on mobile
-    } else if (onMenuClick) {
-      onMenuClick(); // Fallback to prop if provided
+      // This will trigger the sidebar toggle via the store
+      // The sidebar component listens to this state
+      toggleSidebar();
     }
   };
 
@@ -52,20 +50,36 @@ export function Header({ onMenuClick }: HeaderProps) {
       className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        {/* Mobile Menu Button */}
-        {isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleMenuClick}
-            className="mr-2 lg:hidden hover:bg-secondary"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-        )}
+        {/* Left Section - Mobile Menu Button and Logo */}
+        <div className="flex items-center space-x-4">
+          {/* Mobile Menu Button */}
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleMobileMenuClick}
+              className="hover:bg-secondary"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+          )}
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md">
+          {/* Logo for mobile */}
+          {isMobile && (
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <GraduationCap className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-lg">GCET BLOG</span>
+            </div>
+          )}
+        </div>
+
+        {/* Search Bar - Hidden on mobile if there's no space */}
+        <div className={cn(
+          "flex-1 max-w-md",
+          isMobile && "hidden" // Hide search bar on mobile for now, or adjust as needed
+        )}>
           <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -80,6 +94,18 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* Right Side Actions */}
         <div className="flex items-center space-x-4">
+          {/* Search Icon for mobile */}
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-secondary"
+              onClick={() => {/* Implement mobile search */}}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          )}
+
           {/* Theme Toggle */}
           <Button
             variant="ghost"
@@ -99,6 +125,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             variant="ghost"
             size="icon"
             className="relative hover:bg-secondary"
+            onClick={() => navigate('/notifications')}
           >
             <Bell className="w-4 h-4" />
             {unreadNotifications > 0 && (
