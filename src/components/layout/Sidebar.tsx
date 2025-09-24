@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile'; // Import the hook
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const getNavigationItems = (userRole: string) => {
   const baseItems = [
@@ -32,11 +32,15 @@ const getNavigationItems = (userRole: string) => {
   );
 };
 
-export function Sidebar() {
+interface SidebarProps {
+  isMobileOpen: boolean;
+  setIsMobileOpen: (open: boolean) => void;
+}
+
+export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
   const location = useLocation();
   const { sidebarCollapsed, toggleSidebar, currentUser, unreadNotifications } = useAppStore();
   const isMobile = useIsMobile();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopOpen, setIsDesktopOpen] = useState(!sidebarCollapsed);
 
   const navigationItems = getNavigationItems(currentUser?.role || 'student');
@@ -58,7 +62,7 @@ export function Sidebar() {
     if (isMobile) {
       setIsMobileOpen(false);
     }
-  }, [location.pathname, isMobile]);
+  }, [location.pathname, isMobile, setIsMobileOpen]);
 
   // Close mobile sidebar on escape key
   useEffect(() => {
@@ -70,17 +74,15 @@ export function Sidebar() {
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isMobileOpen]);
+  }, [isMobileOpen, setIsMobileOpen]);
 
   const sidebarVariants = {
     open: { 
       x: 0,
-      width: isMobile ? '280px' : '280px',
       opacity: 1 
     },
     closed: { 
       x: isMobile ? '-100%' : 0,
-      width: isMobile ? '0px' : '80px',
       opacity: 1 
     }
   };
@@ -89,6 +91,11 @@ export function Sidebar() {
     open: { opacity: 1, display: 'block' },
     closed: { opacity: 0, display: 'none' }
   };
+
+  // Don't render sidebar on mobile when closed
+  if (isMobile && !isMobileOpen) {
+    return null;
+  }
 
   return (
     <>
@@ -108,12 +115,13 @@ export function Sidebar() {
       {/* Sidebar */}
       <motion.aside
         variants={sidebarVariants}
+        initial="closed"
         animate={isOpen ? 'open' : 'closed'}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={cn(
           'fixed left-0 top-0 z-50 h-screen bg-card border-r border-border',
           'flex flex-col shadow-lg lg:relative lg:z-auto',
-          !isOpen && !isMobile && 'lg:w-20'
+          isMobile ? 'w-80' : (isOpen ? 'w-80' : 'w-20')
         )}
       >
         {/* Header */}
