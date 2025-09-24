@@ -1,4 +1,3 @@
-// components/Sidebar.tsx
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile'; // Import the hook
 
 const getNavigationItems = (userRole: string) => {
   const baseItems = [
@@ -38,50 +37,57 @@ export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar, currentUser, unreadNotifications } = useAppStore();
   const isMobile = useIsMobile();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  // Sync with global sidebar state on desktop
-  useEffect(() => {
-    if (!isMobile) {
-      // For desktop, use the global sidebar state
-      setIsMobileOpen(false);
-    }
-  }, [isMobile, sidebarCollapsed]);
+  const [isDesktopOpen, setIsDesktopOpen] = useState(!sidebarCollapsed);
 
   const navigationItems = getNavigationItems(currentUser?.role || 'student');
+
+  // Determine if sidebar should be visible
+  const isOpen = isMobile ? isMobileOpen : isDesktopOpen;
 
   const handleToggle = () => {
     if (isMobile) {
       setIsMobileOpen(!isMobileOpen);
     } else {
       toggleSidebar();
+      setIsDesktopOpen(!isDesktopOpen);
     }
   };
 
-  const handleCloseMobile = () => {
-    setIsMobileOpen(false);
-  };
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    if (isMobile) {
+      setIsMobileOpen(false);
+    }
+  }, [location.pathname, isMobile]);
 
-  // Determine if sidebar should be visible
-  const isSidebarVisible = isMobile ? isMobileOpen : !sidebarCollapsed;
+  // Close mobile sidebar on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileOpen) {
+        setIsMobileOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isMobileOpen]);
 
   const sidebarVariants = {
-    mobileOpen: { x: 0, opacity: 1 },
-    mobileClosed: { x: '-100%', opacity: 1 },
-    desktopOpen: { width: '280px', opacity: 1 },
-    desktopClosed: { width: '80px', opacity: 1 }
+    open: { 
+      x: 0,
+      width: isMobile ? '280px' : '280px',
+      opacity: 1 
+    },
+    closed: { 
+      x: isMobile ? '-100%' : 0,
+      width: isMobile ? '0px' : '80px',
+      opacity: 1 
+    }
   };
 
   const contentVariants = {
     open: { opacity: 1, display: 'block' },
     closed: { opacity: 0, display: 'none' }
-  };
-
-  // Determine which variant to use based on device and state
-  const getSidebarVariant = () => {
-    if (isMobile) {
-      return isMobileOpen ? 'mobileOpen' : 'mobileClosed';
-    }
-    return !sidebarCollapsed ? 'desktopOpen' : 'desktopClosed';
   };
 
   return (
@@ -94,7 +100,7 @@ export function Sidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
-            onClick={handleCloseMobile}
+            onClick={() => setIsMobileOpen(false)}
           />
         )}
       </AnimatePresence>
@@ -102,23 +108,22 @@ export function Sidebar() {
       {/* Sidebar */}
       <motion.aside
         variants={sidebarVariants}
-        animate={getSidebarVariant()}
+        animate={isOpen ? 'open' : 'closed'}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={cn(
           'fixed left-0 top-0 z-50 h-screen bg-card border-r border-border',
-          'flex flex-col shadow-lg',
-          !isMobile && 'lg:relative lg:z-auto',
-          isMobile ? 'w-72' : 'lg:w-auto'
+          'flex flex-col shadow-lg lg:relative lg:z-auto',
+          !isOpen && !isMobile && 'lg:w-20'
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between p-4 border-b border-border min-h-[64px]">
           <motion.div
             variants={contentVariants}
-            animate={isSidebarVisible ? 'open' : 'closed'}
+            animate={isOpen ? 'open' : 'closed'}
             className="flex items-center space-x-3"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -133,11 +138,7 @@ export function Sidebar() {
             onClick={handleToggle}
             className="hover:bg-secondary"
           >
-            {isMobile ? (
-              <X className="w-5 h-5" />
-            ) : (
-              sidebarCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />
-            )}
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
         </div>
 
@@ -151,7 +152,6 @@ export function Sidebar() {
               <NavLink
                 key={item.href}
                 to={item.href}
-                onClick={() => isMobile && setIsMobileOpen(false)}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all',
@@ -165,7 +165,7 @@ export function Sidebar() {
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 <motion.span
                   variants={contentVariants}
-                  animate={isSidebarVisible ? 'open' : 'closed'}
+                  animate={isOpen ? 'open' : 'closed'}
                   className="font-medium"
                 >
                   {item.title}
@@ -175,15 +175,15 @@ export function Sidebar() {
                 {item.href === '/notifications' && unreadNotifications > 0 && (
                   <motion.span
                     variants={contentVariants}
-                    animate={isSidebarVisible ? 'open' : 'closed'}
+                    animate={isOpen ? 'open' : 'closed'}
                     className="ml-auto bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center"
                   >
                     {unreadNotifications}
                   </motion.span>
                 )}
 
-                {/* Tooltip for collapsed state (desktop only) */}
-                {!isMobile && sidebarCollapsed && (
+                {/* Tooltip for collapsed state */}
+                {!isOpen && !isMobile && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                     {item.title}
                   </div>
@@ -204,7 +204,7 @@ export function Sidebar() {
               />
               <motion.div
                 variants={contentVariants}
-                animate={isSidebarVisible ? 'open' : 'closed'}
+                animate={isOpen ? 'open' : 'closed'}
                 className="flex-1 min-w-0"
               >
                 <p className="text-sm font-medium text-foreground truncate">
