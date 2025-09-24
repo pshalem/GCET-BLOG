@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* GCET Academic Social Platform Design System
+All colors, gradients, fonts, animations defined here.
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Core Background & Text */
+    --background: 0 0% 100%;
+    --foreground: 215 25% 15%;
+
+    /* Card & Surface Colors */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+    --card-hover: 210 40% 98%;
+    
+    /* Modal & Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    /* GCET Brand Colors */
+    --primary: 217 91% 48%;        /* GCET Deep Blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 42%;
+    --primary-light: 217 91% 85%;
+    
+    /* Academic Secondary */
+    --secondary: 210 15% 96%;
+    --secondary-foreground: 215 25% 15%;
+    --secondary-hover: 210 15% 92%;
+
+    /* Muted Text & Backgrounds */
+    --muted: 210 15% 96%;
+    --muted-foreground: 215 15% 45%;
+
+    /* Accent Colors for Interactions */
+    --accent: 142 76% 36%;          /* Success Green */
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 142 76% 32%;
+
+    /* Reactions & Interactions */
+    --reaction-like: 0 84% 60%;     /* Heart Red */
+    --reaction-celebrate: 45 93% 47%; /* Celebration Yellow */
+    --reaction-fire: 14 91% 54%;    /* Fire Orange */
+    --reaction-clap: 217 91% 48%;   /* Clap Blue */
+    
+    /* Status & Feedback */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 214 15% 91%;
+    --input: 214 15% 91%;
+    --ring: 217 91% 48%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 48%), hsl(217 91% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 48%), hsl(217 91% 38%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 15% 98%));
+    --gradient-reaction: linear-gradient(45deg, hsl(0 84% 60%), hsl(14 91% 54%));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(215 25% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(215 25% 15% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(215 25% 15% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(215 25% 15% / 0.1);
+    --shadow-primary: 0 10px 30px -10px hsl(217 91% 48% / 0.3);
+
+    /* Animations */
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark Mode Colors */
+    --background: 215 28% 7%;
+    --foreground: 210 40% 98%;
+
+    --card: 215 28% 9%;
+    --card-foreground: 210 40% 98%;
+    --card-hover: 215 28% 11%;
+
+    --popover: 215 28% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    /* GCET Brand in Dark Mode */
+    --primary: 217 91% 60%;
+    --primary-foreground: 215 28% 7%;
+    --primary-hover: 217 91% 65%;
+    --primary-light: 217 91% 25%;
+
+    --secondary: 215 28% 12%;
+    --secondary-foreground: 210 40% 98%;
+    --secondary-hover: 215 28% 15%;
+
+    --muted: 215 28% 12%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 142 76% 40%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 142 76% 45%;
+
+    /* Dark Mode Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 45%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 55%), hsl(217 91% 35%));
+    --gradient-card: linear-gradient(145deg, hsl(215 28% 9%), hsl(215 28% 12%));
+
+    --destructive: 0 62.8% 45%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 28% 15%;
+    --input: 215 28% 15%;
+    --ring: 217 91% 60%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
