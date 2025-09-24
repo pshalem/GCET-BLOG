@@ -39,7 +39,7 @@ interface SidebarProps {
 
 export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
   const location = useLocation();
-  const { sidebarCollapsed, toggleSidebar, currentUser, unreadNotifications } = useAppStore();
+  const { sidebarCollapsed, currentUser, unreadNotifications } = useAppStore();
   const isMobile = useIsMobile();
   const [isDesktopOpen, setIsDesktopOpen] = useState(!sidebarCollapsed);
 
@@ -52,7 +52,6 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
     if (isMobile) {
       setIsMobileOpen(!isMobileOpen);
     } else {
-      toggleSidebar();
       setIsDesktopOpen(!isDesktopOpen);
     }
   };
@@ -63,18 +62,6 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
       setIsMobileOpen(false);
     }
   }, [location.pathname, isMobile, setIsMobileOpen]);
-
-  // Close mobile sidebar on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMobileOpen) {
-        setIsMobileOpen(false);
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isMobileOpen, setIsMobileOpen]);
 
   const sidebarVariants = {
     open: { 
@@ -92,11 +79,6 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
     closed: { opacity: 0, display: 'none' }
   };
 
-  // Don't render sidebar on mobile when closed
-  if (isMobile && !isMobileOpen) {
-    return null;
-  }
-
   return (
     <>
       {/* Mobile Overlay */}
@@ -112,7 +94,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Sidebar - Always rendered but positioned off-screen on mobile when closed */}
       <motion.aside
         variants={sidebarVariants}
         initial="closed"
@@ -120,8 +102,9 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={cn(
           'fixed left-0 top-0 z-50 h-screen bg-card border-r border-border',
-          'flex flex-col shadow-lg lg:relative lg:z-auto',
-          isMobile ? 'w-80' : (isOpen ? 'w-80' : 'w-20')
+          'flex flex-col shadow-lg',
+          isMobile ? 'w-80' : (isOpen ? 'w-80' : 'w-20'),
+          !isMobile && 'relative' // Make it relative on desktop
         )}
       >
         {/* Header */}
@@ -131,7 +114,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
             animate={isOpen ? 'open' : 'closed'}
             className="flex items-center space-x-3"
           >
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -179,18 +162,16 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
                   {item.title}
                 </motion.span>
                 
-                {/* Notification badge */}
                 {item.href === '/notifications' && unreadNotifications > 0 && (
                   <motion.span
                     variants={contentVariants}
                     animate={isOpen ? 'open' : 'closed'}
-                    className="ml-auto bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center"
+                    className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center"
                   >
                     {unreadNotifications}
                   </motion.span>
                 )}
 
-                {/* Tooltip for collapsed state */}
                 {!isOpen && !isMobile && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                     {item.title}
