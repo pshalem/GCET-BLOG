@@ -19,12 +19,10 @@ export function Layout() {
 
   // Initialize app with mock data
   useEffect(() => {
-    // Load initial data
     setPosts(mockPosts);
     setNotifications(mockNotifications);
     setPendingPosts(mockPendingPosts);
 
-    // Apply theme on initial load
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -33,23 +31,24 @@ export function Layout() {
   }, [theme, setPosts, setNotifications, setPendingPosts]);
 
   const handleMenuClick = () => {
-    if (isMobile) {
-      setIsMobileSidebarOpen(!isMobileSidebarOpen);
-    }
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex h-screen overflow-hidden">
-        {/* Sidebar - Completely hidden on mobile until opened */}
+        {/* Sidebar - Always rendered but positioned properly */}
         <Sidebar 
           isMobileOpen={isMobileSidebarOpen} 
           setIsMobileOpen={setIsMobileSidebarOpen} 
         />
         
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header with single hamburger button */}
+        {/* Main Content Area */}
+        <div className={cn(
+          "flex-1 flex flex-col overflow-hidden transition-all duration-300",
+          isMobile && isMobileSidebarOpen ? "ml-0" : "ml-0"
+        )}>
+          {/* Header */}
           <Header onMenuClick={handleMenuClick} />
           
           {/* Page Content */}
@@ -67,4 +66,9 @@ export function Layout() {
       </div>
     </div>
   );
+}
+
+// Add cn utility if not available
+function cn(...classes: (string | undefined | null | false)[]) {
+  return classes.filter(Boolean).join(' ');
 }
