@@ -200,7 +200,7 @@ export default function Login() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Enter your @gcet.edu.in email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     className="pl-10"
@@ -302,10 +302,10 @@ export default function Login() {
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-2">Demo accounts:</p>
                 <div className="space-y-1 text-xs">
-                  <p><strong>Student:</strong> john.doe@gcet.edu</p>
-                  <p><strong>Staff:</strong> sarah.wilson@gcet.edu</p>
-                  <p><strong>Editor:</strong> editor@gcet.edu</p>
-                  <p><strong>Admin:</strong> admin@gcet.edu</p>
+                  <p><strong>Student:</strong> john.doe@gcet.edu.in</p>
+                  <p><strong>Staff:</strong> sarah.wilson@gcet.edu.in</p>
+                  <p><strong>Editor:</strong> editor@gcet.edu.in</p>
+                  <p><strong>Admin:</strong> admin@gcet.edu.in</p>
                 </div>
               </div>
             )}
