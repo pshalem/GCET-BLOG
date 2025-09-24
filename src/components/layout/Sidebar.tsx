@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store';
 import { cn } from '@/lib/utils';
+import { useMobileSidebar } from '@/hooks/use-mobile'; // Import the new hook
 
 const getNavigationItems = (userRole: string) => {
   const baseItems = [
@@ -34,18 +35,54 @@ const getNavigationItems = (userRole: string) => {
 export function Sidebar() {
   const location = useLocation();
   const { sidebarCollapsed, toggleSidebar, currentUser, unreadNotifications } = useAppStore();
-  const [isOpen, setIsOpen] = useState(!sidebarCollapsed);
-
+  const { isOpen, isMobile, open, close } = useMobileSidebar();
+  
   const navigationItems = getNavigationItems(currentUser?.role || 'student');
 
+  // Sync with global sidebar state for desktop
+  useEffect(() => {
+    if (!isMobile) {
+      // On desktop, use the global sidebar state
+      if (sidebarCollapsed && isOpen) {
+        close();
+      } else if (!sidebarCollapsed && !isOpen) {
+        open();
+      }
+    }
+  }, [sidebarCollapsed, isMobile, isOpen, open, close]);
+
   const handleToggle = () => {
-    toggleSidebar();
-    setIsOpen(!isOpen);
+    if (isMobile) {
+      // On mobile, toggle the mobile sidebar
+      if (isOpen) {
+        close();
+      } else {
+        open();
+      }
+    } else {
+      // On desktop, use the global toggle
+      toggleSidebar();
+    }
+  };
+
+  const handleNavClick = () => {
+    // Close sidebar on mobile when a nav item is clicked
+    if (isMobile) {
+      close();
+    }
   };
 
   const sidebarVariants = {
-    open: { width: '280px', opacity: 1 },
-    closed: { width: '80px', opacity: 1 }
+    open: { 
+      x: 0,
+      width: isMobile ? '280px' : '280px',
+      opacity: 1 
+    },
+    closed: { 
+      x: isMobile ? '-100%' : 0,
+      width: isMobile ? '0px' : '80px',
+      opacity: 1 
+    }
   };
 
   const contentVariants = {
@@ -56,13 +93,13 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile Overlay */}
-      {isOpen && (
+      {isMobile && isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={close}
         />
       )}
 
@@ -73,8 +110,9 @@ export function Sidebar() {
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={cn(
           'fixed left-0 top-0 z-50 h-screen bg-card border-r border-border',
-          'flex flex-col shadow-lg lg:relative lg:z-auto',
-          !isOpen && 'lg:w-20'
+          'flex flex-col shadow-lg',
+          !isMobile && 'lg:relative lg:z-auto',
+          isMobile ? 'w-[280px]' : 'lg:w-auto'
         )}
       >
         {/* Header */}
@@ -113,6 +151,7 @@ export function Sidebar() {
               <NavLink
                 key={item.href}
                 to={item.href}
+                onClick={handleNavClick}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all',
@@ -144,7 +183,7 @@ export function Sidebar() {
                 )}
 
                 {/* Tooltip for collapsed state */}
-                {!isOpen && (
+                {!isOpen && !isMobile && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                     {item.title}
                   </div>
