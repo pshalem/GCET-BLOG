@@ -1,6 +1,5 @@
-// components/Header.tsx
 import { useState } from 'react';
-import { Search, Bell, Moon, Sun, User, LogOut, Menu } from 'lucide-react';
+import { Search, Bell, Moon, Sun, User, LogOut, Menu } from 'lucide-react'; // Added Menu icon
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,14 +14,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store';
 import { motion } from 'framer-motion';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile'; // Import the hook
 
 export function Header() {
-  const { theme, toggleTheme, currentUser, unreadNotifications, logout, toggleSidebar } = useAppStore();
-  const isMobile = useIsMobile();
+  const { theme, toggleTheme, currentUser, unreadNotifications, logout } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,12 +33,12 @@ export function Header() {
     navigate('/login');
   };
 
-  const handleMobileMenuClick = () => {
-    if (isMobile) {
-      // This will trigger the sidebar toggle via the store
-      // The sidebar component listens to this state
-      toggleSidebar();
-    }
+  // Function to toggle mobile sidebar (you'll need to add this to your store or use context)
+  const toggleMobileSidebar = () => {
+    // This will be handled by the sidebar component through state
+    // You might want to use a context or store for this
+    const event = new CustomEvent('toggle-mobile-sidebar');
+    window.dispatchEvent(event);
   };
 
   return (
@@ -50,35 +48,22 @@ export function Header() {
       className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        {/* Left Section - Mobile Menu Button and Logo */}
-        <div className="flex items-center space-x-4">
-          {/* Mobile Menu Button */}
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleMobileMenuClick}
-              className="hover:bg-secondary"
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
-          )}
+        {/* Mobile Menu Button */}
+        {isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMobileSidebar}
+            className="mr-2 hover:bg-secondary lg:hidden"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+        )}
 
-          {/* Logo for mobile */}
-          {isMobile && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-lg">GCET BLOG</span>
-            </div>
-          )}
-        </div>
-
-        {/* Search Bar - Hidden on mobile if there's no space */}
+        {/* Search Bar */}
         <div className={cn(
           "flex-1 max-w-md",
-          isMobile && "hidden" // Hide search bar on mobile for now, or adjust as needed
+          isMobile ? "ml-2" : "ml-0"
         )}>
           <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -94,18 +79,6 @@ export function Header() {
 
         {/* Right Side Actions */}
         <div className="flex items-center space-x-4">
-          {/* Search Icon for mobile */}
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hover:bg-secondary"
-              onClick={() => {/* Implement mobile search */}}
-            >
-              <Search className="w-4 h-4" />
-            </Button>
-          )}
-
           {/* Theme Toggle */}
           <Button
             variant="ghost"
@@ -125,7 +98,6 @@ export function Header() {
             variant="ghost"
             size="icon"
             className="relative hover:bg-secondary"
-            onClick={() => navigate('/notifications')}
           >
             <Bell className="w-4 h-4" />
             {unreadNotifications > 0 && (
@@ -188,4 +160,9 @@ export function Header() {
       </div>
     </motion.header>
   );
+}
+
+// Add this utility function if you don't have it
+function cn(...classes: (string | undefined | null | false)[]) {
+  return classes.filter(Boolean).join(' ');
 }
