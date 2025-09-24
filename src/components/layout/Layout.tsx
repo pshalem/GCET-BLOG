@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 export function Layout() {
   const { theme, currentUser, isAuthenticated, setPosts, setNotifications, setPendingPosts } = useAppStore();
   const isMobile = useIsMobile();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Redirect to login if not authenticated
   if (!isAuthenticated || !currentUser) {
@@ -31,23 +32,32 @@ export function Layout() {
     }
   }, [theme, setPosts, setNotifications, setPendingPosts]);
 
+  const handleMenuClick = () => {
+    if (isMobile) {
+      setIsMobileSidebarOpen(!isMobileSidebarOpen);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex h-screen overflow-hidden">
-        {/* Sidebar - Hidden on mobile by default */}
-        <Sidebar />
+        {/* Sidebar - Completely hidden on mobile until opened */}
+        <Sidebar 
+          isMobileOpen={isMobileSidebarOpen} 
+          setIsMobileOpen={setIsMobileSidebarOpen} 
+        />
         
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <Header />
+          {/* Header with single hamburger button */}
+          <Header onMenuClick={handleMenuClick} />
           
           {/* Page Content */}
           <motion.main
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex-1 overflow-auto bg-background p-4 sm:p-6" // Added responsive padding
+            className="flex-1 overflow-auto bg-background p-4 sm:p-6"
           >
             <div className="max-w-7xl mx-auto">
               <Outlet />
